@@ -62,6 +62,9 @@ jobs:
           printf '%s\n' "VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
+      - name: Debug known_hosts
+        run: cat ~/.ssh/known_hosts
+
       - name: Test SSH connection
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
