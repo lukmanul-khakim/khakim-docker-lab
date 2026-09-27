@@ -1,0 +1,18 @@
+.env
+
+# Certificates / private keys
+*.pem
+*.key
+*.crt
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+
+# OS/editor files
+.DS_Store
+.vscode/
+.idea/

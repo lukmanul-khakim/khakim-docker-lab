@@ -1,0 +1,90 @@
+services:
+
+  haproxy:
+    image: haproxy:2.9-alpine
+    container_name: lab-haproxy
+    ports:
+      - "8080:80"
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      web01:
+        condition: service_healthy
+      web02:
+        condition: service_healthy
+    networks:
+      - frontend-net
+    restart: unless-stopped
+
+  web01:
+    image: khakim-web:1.0
+    container_name: lab-web01
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/ || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - frontend-net
+    restart: unless-stopped
+
+
+  web02:
+    image: khakim-web:1.0
+    container_name: lab-web02
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/ || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - frontend-net
+    restart: unless-stopped
+
+  portfolio-api:
+    image: khakim-api:1.0
+    container_name: lab-portfolio-api
+    depends_on:
+      portfolio-db:
+        condition: service_healthy
+    networks:
+      - frontend-net
+      - backend-net
+    restart: unless-stopped
+
+
+  portfolio-db:
+    image: postgres:17-alpine
+    container_name: lab-portfolio-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - portfolio-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_PASSWORD}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - backend-net
+    restart: unless-stopped
+
+networks:
+  frontend-net:
+    name: frontend-net
+    external: true
+
+  backend-net:
+    name: backend-net
+    external: true
+
+volumes:
+  portfolio-db-data:
+    name: portfolio-db-data
+    external: true
